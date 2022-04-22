@@ -5,7 +5,8 @@
 #ifndef PENDULUM_PENDULUM_H
 #define PENDULUM_PENDULUM_H
 #define PATH_LENGTH 100
-#include <vector>
+#define dTIME 0.0000001
+
 class Pendulum{
 private:
     double theta1,
@@ -13,15 +14,19 @@ private:
            p1,
            p2,
            time = 0,
-           m,
-           l;
-    int path[PATH_LENGTH];
+           mass,
+           length;
+    int path[2][PATH_LENGTH];
 public:
-    Pendulum(double theta1, double theta2, double p1, double p2, double m, double l);
+    Pendulum(double theta1, double theta2, double p1, double p2, double mass, double length);
     double f1();
     double f2();
-    std::vector<double> get_cartesian1();
-    std::vector<double> get_cartesian2();
+    void get_cartesian1(double *coord1);
+    void get_cartesian2(double *coord2);
+    void corrector1();
+    void corrector2();
+    void iterate();
+
 
 
 };
