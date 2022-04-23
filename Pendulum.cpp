@@ -37,13 +37,13 @@ double Pendulum::f2() {
     return diff_equation;
 }
 
-void Pendulum::get_cartesian1(double *coord1)
+void Pendulum::getCartesian1(double *coord1)
 {
     coord1[0] = length * sin(theta1) / (2 * length);
     coord1[1] = length * cos(theta1) / (2 * length);
 }
 
-void Pendulum::get_cartesian2(double *coord2)
+void Pendulum::getCartesian2(double *coord2)
 {
     coord2[0] = length * (sin(theta1) + sin(theta2)) / (2.0 * length);
     coord2[1] = length * (cos(theta1) + cos(theta2)) / (2.0 * length);
@@ -52,45 +52,66 @@ void Pendulum::get_cartesian2(double *coord2)
 Pendulum Pendulum::corrector1()
 {
     double dTheta = this->f1();
-     Pendulum p{(this->theta1 + dTIME * dTheta),
-               this->theta2,
-               this->p1,
-               this->p2,
-               this->time,
-               this->length,
-               this->mass};
+     Pendulum p{(theta1 + dTIME * dTheta),
+               theta2,
+               p1,
+               p2,
+               mass,
+               length,
+               time};
     return p;
 }
 
 Pendulum Pendulum::corrector2()
 {
     double dTheta = this->f2();
-    Pendulum p{this->theta1,
-            (this->theta2 + dTIME * dTheta),
-            this->p1,
-            this->p2,
-            this->time,
-            this->length,
-            this->mass};
+    Pendulum p{theta1,
+            (theta2 + dTIME * dTheta),
+               p1,
+               p2,
+               mass,
+               length,
+               time
+              };
     return p;
 }
 
 void Pendulum::iterate() {
     Pendulum::theta1 = (theta1 +  dTIME * (this->f1() + (*this).corrector1().f1()) / 2.0);
     Pendulum::theta2 = (theta2 +  dTIME * (this->f2() + (*this).corrector2().f2()) / 2.0);
-    Pendulum::p1 += (-(mass * length * length / 2.0) *
-                    (this->f1() * this->f2() * sin(theta1 - theta2) +
-                     3.0 * g * sin(theta1) / length)) * dTIME;
-    Pendulum::p2 += (-(mass * length * length/ 2.0) *
-                    (-this->f1() * this->f2() * sin(theta1 - theta2) +
-                     g * sin(theta2) / length)) * dTIME;
+    double dp1 = (-(mass * length * length / 2.0) *
+                 (this->f1() * this->f2() * sin(theta1 - theta2) +
+                  3.0 * g * sin(theta1) / length)) * dTIME;
+    double dp2 = (-(mass * length * length/ 2.0) *
+                  (-this->f1() * this->f2() * sin(theta1 - theta2) +
+                   g * sin(theta2) / length)) * dTIME;
+
+
+    Pendulum::p1 += dp1;
+    Pendulum::p2 += dp2;
 
     Pendulum::time += dTIME;
     Pendulum::counter = (counter + 1) % PATH_LENGTH;
     double coord[2];
-    get_cartesian2(coord);
+    getCartesian2(coord);
     Pendulum::path[counter][0] = coord[0];
     Pendulum::path[counter][1] = coord[1];
+}
+
+double Pendulum::getTheta1() const {
+    return theta1;
+}
+
+double Pendulum::getTheta2() const {
+    return theta2;
+}
+
+double Pendulum::getP1() const {
+    return p1;
+}
+
+double Pendulum::getP2() const {
+    return p2;
 }
 
 
