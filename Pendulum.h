@@ -20,7 +20,7 @@ private:
            mass,
            length;
     double path[PATH_LENGTH][2];
-    int counter
+    int counter;
 public:
     Pendulum(double theta1, double theta2, double p1, double p2, double mass, double length);
 
