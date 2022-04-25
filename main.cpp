@@ -38,13 +38,16 @@ int main() {
 
     cv::VideoWriter video("pendulum_test.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
                           FPS, cv::Size(WIDTH, HEIGHT));
-    int frameAmount = FPS * 4;
+    int frameAmount = FPS * 4 * 60;
+    cv::Mat videoFrame = cv::Mat::zeros(WIDTH, HEIGHT, CV_8UC3);;
     for (auto i = 0; i < frameAmount; i++)
     {
         frame.update();
-        video << frame.draw();
-        cv::imshow("Pendulum", frame.draw());
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/60));
+        videoFrame = frame.draw();
+        video << videoFrame;
+//        cv::imshow("Pendulum", videoFrame);
+//        cv::moveWindow("Pendulum" , 0, 200 );
+//        std::this_thread::sleep_for(std::chrono::milliseconds(1000/60));
 
     }
     video.release();

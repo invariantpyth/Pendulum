@@ -8,6 +8,11 @@
 #include "Pendulum.h"
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////  PENDULUM CLASS IMPLEMENTATION  //////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 Pendulum::Pendulum(double theta1, double theta2, double p1, double p2, double mass, double length, double time=0)
 {
     Pendulum::theta1 = theta1;
@@ -26,6 +31,7 @@ Pendulum::Pendulum(double theta1, double theta2, double p1, double p2, double ma
 
 }
 
+//    NEXT TWO METHODS RETURN ANGULAR VELOCITY OF THE FIRST AND THE SECOND LINKS OF THE PENDULUM
 double Pendulum::f1() {
     double diff_equation = ((6 / (mass * length * length)) *
                 (2 * p1 - 3 * cos(theta1 - theta2) * p2) /
@@ -40,6 +46,8 @@ double Pendulum::f2() {
     return diff_equation;
 }
 
+
+//    GETTERS OF CARTESIAN COORDINATES OF THE LINKS OF THE PENDULUM
 void Pendulum::getCartesian1(double *coord1)
 {
     coord1[0] = length * sin(theta1) / (2 * length);
@@ -52,6 +60,8 @@ void Pendulum::getCartesian2(double *coord2)
     coord2[1] = length * (cos(theta1) + cos(theta2)) / (2.0 * length);
 }
 
+
+//    FUNCTIONS-CORRECTORS FOR RUNGE-KUTTA METHOD
 Pendulum Pendulum::corrector1()
 {
     double dTheta = this->f1();
@@ -79,6 +89,7 @@ Pendulum Pendulum::corrector2()
     return pend;
 }
 
+//    COMPUTES THE STATE OF THE SYSTEM AFTER 1/60 SECOND
 void Pendulum::iterate() {
     Pendulum::theta1 = (theta1 +  dTIME * (this->f1() + (*this).corrector1().f1()) / 2.0);
     Pendulum::theta2 = (theta2 +  dTIME * (this->f2() + (*this).corrector2().f2()) / 2.0);
@@ -101,6 +112,8 @@ void Pendulum::iterate() {
     Pendulum::path[counter][1] = coord[1];
 }
 
+
+//    GETTERS
 double Pendulum::getTheta1() const {
     return theta1;
 }
@@ -116,6 +129,12 @@ double Pendulum::getP1() const {
 double Pendulum::getP2() const {
     return p2;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////  FRAME CLASS IMPLEMENTATION  ///////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 Frame::Frame(int _width,
@@ -165,13 +184,19 @@ void Frame::transformCoordinates(double *coord){
 
 cv::Mat Frame::draw() {
     int minSide = std::min(width, height);
-    cv::Mat frame(width, height, CV_8UC3);
-    frame.setTo(cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]));
+    cv::Mat frame = cv::Mat::zeros(width, height, CV_8UC3);
+//    rectangle( frame,
+//               cv::Point( 0, 0),
+//               cv::Point( width, height),
+//               cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]),
+//               FILLED,
+//               LINE_8 );
+//    frame.setTo(cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]));
     double center[2] = {0.0, 0.0};
     double fLinkCoord[2];
     pend.getCartesian1(fLinkCoord);
     double sLinkCoord[2];
-    pend.getCartesian1(sLinkCoord);
+    pend.getCartesian2(sLinkCoord);
     transformCoordinates(center);
     transformCoordinates(fLinkCoord);
     transformCoordinates(sLinkCoord);
@@ -198,6 +223,7 @@ cv::Mat Frame::draw() {
                cv::Point(sLinkCoord[0], sLinkCoord[1]),
                minSide/40,
                cv::Scalar(middleColor[0], middleColor[1], middleColor[2]),
-               3);
+               3
+    );
     return frame;
 }

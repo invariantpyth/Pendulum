@@ -39,9 +39,11 @@ public:
     double getTheta2() const;
     double getP1() const;
     double getP2() const;
-
-
 };
+
+
+
+
 class Frame{
 private:
     int width;
