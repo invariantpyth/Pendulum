@@ -2,6 +2,9 @@
 // Created by maxim on 22.04.22.
 //
 #include <cmath>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
 #include "Pendulum.h"
 
 
@@ -52,20 +55,20 @@ void Pendulum::getCartesian2(double *coord2)
 Pendulum Pendulum::corrector1()
 {
     double dTheta = this->f1();
-     Pendulum p{(theta1 + dTIME * dTheta),
+     Pendulum pend{(theta1 + dTIME * dTheta),
                theta2,
                p1,
                p2,
                mass,
                length,
                time};
-    return p;
+    return pend;
 }
 
 Pendulum Pendulum::corrector2()
 {
     double dTheta = this->f2();
-    Pendulum p{theta1,
+    Pendulum pend{theta1,
             (theta2 + dTIME * dTheta),
                p1,
                p2,
@@ -73,7 +76,7 @@ Pendulum Pendulum::corrector2()
                length,
                time
               };
-    return p;
+    return pend;
 }
 
 void Pendulum::iterate() {
@@ -115,4 +118,86 @@ double Pendulum::getP2() const {
 }
 
 
+Frame::Frame(int _width,
+             int _height,
+             int const *_backgroundColor,
+             int const *_middleColor,
+             int const *_linkColor,
+             int const *_pathColor,
+             Pendulum _pend)
+{
+    width = _width;
+    height = _height;
+    backgroundColor[0] = _backgroundColor[0];
+    backgroundColor[1] = _backgroundColor[1];
+    backgroundColor[2] = _backgroundColor[2];
 
+    middleColor[0] = _middleColor[0];
+    middleColor[1] = _middleColor[1];
+    middleColor[2] = _middleColor[2];
+
+    linkColor[0] = _linkColor[0];
+    linkColor[1] = _linkColor[1];
+    linkColor[2] = _linkColor[2];
+
+    pathColor[0] = _pathColor[0];
+    pathColor[1] = _pathColor[1];
+    pathColor[2] = _pathColor[2];
+    pend = _pend;
+
+}
+
+
+void Frame::update() {
+    pend.iterate();
+}
+
+
+void Frame::transformCoordinates(double *coord){
+    double x_shift = width / 2.0;
+    double y_shift = height / 2.0;
+    int minSide = std::min(width, height);
+    double radius = 3.5 * 9 * minSide;
+    coord[0] = coord[0] * radius + x_shift;
+    coord[1] = coord[1] * radius + y_shift;
+}
+
+
+cv::Mat Frame::draw() {
+    int minSide = std::min(width, height);
+    cv::Mat frame(width, height, CV_8UC3);
+    frame.setTo(cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]));
+    double center[2] = {0.0, 0.0};
+    double fLinkCoord[2];
+    pend.getCartesian1(fLinkCoord);
+    double sLinkCoord[2];
+    pend.getCartesian1(sLinkCoord);
+    transformCoordinates(center);
+    transformCoordinates(fLinkCoord);
+    transformCoordinates(sLinkCoord);
+//    std::cout << center[0] << " " << center[1] << "\n";
+//    std::cout << fLinkCoord[0] << " " << fLinkCoord[1] << "\n\n";
+    cv::line(frame,
+             cv::Point(center[0], center[1]),
+             cv::Point(fLinkCoord[0], fLinkCoord[1]),
+             cv::Scalar(linkColor[0], linkColor[1], linkColor[2]),
+             3
+    );
+    cv::line(frame,
+             cv::Point(fLinkCoord[0], fLinkCoord[1]),
+             cv::Point(sLinkCoord[0], sLinkCoord[1]),
+             cv::Scalar(linkColor[0], linkColor[1], linkColor[2]),
+             3
+    );
+    cv::circle(frame,
+               cv::Point(fLinkCoord[0], fLinkCoord[1]),
+               minSide/40,
+               cv::Scalar(middleColor[0], middleColor[1], middleColor[2]),
+               3);
+    cv::circle(frame,
+               cv::Point(sLinkCoord[0], sLinkCoord[1]),
+               minSide/40,
+               cv::Scalar(middleColor[0], middleColor[1], middleColor[2]),
+               3);
+    return frame;
+}

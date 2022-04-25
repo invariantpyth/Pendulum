@@ -42,5 +42,21 @@ public:
 
 
 };
-class Frame;
+class Frame{
+private:
+    int width;
+    int height;
+    int backgroundColor[3];
+    int middleColor[3];
+    int linkColor[3];
+    int pathColor[3];
+    Pendulum pend = Pendulum(0, 0, 0, 0, 1, 1, 0);
+
+public:
+
+    Frame(int _width, int _height, const int *_backgroundColor, const int *_middleColor, const int *_linkColor, const int *_pathColor, Pendulum _pend);
+    void update();
+    void transformCoordinates(double *coord);
+    cv::Mat draw();
+};
 #endif //PENDULUM_PENDULUM_H
