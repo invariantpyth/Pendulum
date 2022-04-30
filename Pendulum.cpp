@@ -4,7 +4,7 @@
 #include <cmath>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <iostream>
+//#include <iostream>
 #include "Pendulum.h"
 
 
@@ -27,6 +27,7 @@ Pendulum::Pendulum(double theta1, double theta2, double p1, double p2, double ma
     {
         index[0] = 0;
         index[1] = 0;
+        index[2] = 0;
     }
 
 }
@@ -110,24 +111,7 @@ void Pendulum::iterate() {
     getCartesian2(coord);
     Pendulum::path[counter][0] = coord[0];
     Pendulum::path[counter][1] = coord[1];
-}
-
-
-//    GETTERS
-double Pendulum::getTheta1() const {
-    return theta1;
-}
-
-double Pendulum::getTheta2() const {
-    return theta2;
-}
-
-double Pendulum::getP1() const {
-    return p1;
-}
-
-double Pendulum::getP2() const {
-    return p2;
+    Pendulum::path[counter][2] = 1;
 }
 
 
@@ -167,31 +151,26 @@ Frame::Frame(int _width,
 }
 
 
-void Frame::update() {
-    pend.iterate();
-}
+
 
 
 void Frame::transformCoordinates(double *coord){
     double x_shift = width / 2.0;
     double y_shift = height / 2.0;
     int minSide = std::min(width, height);
-    double radius = 3.5 * 9 * minSide;
+    double radius = 3.5 * minSide / 9;
     coord[0] = coord[0] * radius + x_shift;
     coord[1] = coord[1] * radius + y_shift;
 }
 
 
 cv::Mat Frame::draw() {
+
     int minSide = std::min(width, height);
-    cv::Mat frame = cv::Mat::zeros(width, height, CV_8UC3);
-//    rectangle( frame,
-//               cv::Point( 0, 0),
-//               cv::Point( width, height),
-//               cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]),
-//               FILLED,
-//               LINE_8 );
-//    frame.setTo(cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]));
+    cv::Mat frame = cv::Mat::zeros(height, width, CV_8UC3);
+    frame.setTo(cv::Scalar(backgroundColor[0], backgroundColor[1], backgroundColor[2]));
+
+
     double center[2] = {0.0, 0.0};
     double fLinkCoord[2];
     pend.getCartesian1(fLinkCoord);
@@ -200,8 +179,52 @@ cv::Mat Frame::draw() {
     transformCoordinates(center);
     transformCoordinates(fLinkCoord);
     transformCoordinates(sLinkCoord);
-//    std::cout << center[0] << " " << center[1] << "\n";
-//    std::cout << fLinkCoord[0] << " " << fLinkCoord[1] << "\n\n";
+
+//    double pathCoord[2];
+    double pathCoordFirst[2];
+    double pathCoordSecond[2];
+
+        int firstDotIndex;
+        int secondDotIndex;
+
+    for (int i = 0; i < PATH_LENGTH - 1; i++)
+    {
+        if (pend.path[(i + 1 + pend.counter) % PATH_LENGTH][2] != 0)
+        {
+            firstDotIndex = (i + pend.counter) % PATH_LENGTH;
+            secondDotIndex = (i + 1 + pend.counter) % PATH_LENGTH;
+            pathCoordFirst[0] = pend.path[firstDotIndex][0];
+            pathCoordFirst[1] = pend.path[firstDotIndex][1];
+            pathCoordSecond[0] = pend.path[secondDotIndex][0];
+            pathCoordFirst[1] = pend.path[secondDotIndex][1];
+            transformCoordinates(pathCoordFirst);
+            transformCoordinates(pathCoordSecond);
+            cv::line(frame,
+                     cv::Point(pathCoordFirst[0], pathCoordFirst[1]),
+                     cv::Point(pathCoordSecond[0], pathCoordSecond[1]),
+                     cv::Scalar(pathColor[0], pathColor[1], pathColor[2]),
+                     3
+            );
+        }
+        else{
+            break;
+        }
+    }
+
+//    for (auto & index : pend.path)
+//    {
+//        pathCoord[0] = index[0];
+//        pathCoord[1] = index[1];
+//        transformCoordinates(pathCoord);
+//
+//        cv::circle(frame,
+//                   cv::Point(pathCoord[0], pathCoord[1]),
+//                   1,
+//                   cv::Scalar(pathColor[0], pathColor[1], pathColor[2]),
+//                   3
+//        );
+//    }
+
     cv::line(frame,
              cv::Point(center[0], center[1]),
              cv::Point(fLinkCoord[0], fLinkCoord[1]),
@@ -214,16 +237,21 @@ cv::Mat Frame::draw() {
              cv::Scalar(linkColor[0], linkColor[1], linkColor[2]),
              3
     );
+
     cv::circle(frame,
                cv::Point(fLinkCoord[0], fLinkCoord[1]),
                minSide/40,
                cv::Scalar(middleColor[0], middleColor[1], middleColor[2]),
-               3);
+               3
+    );
+
     cv::circle(frame,
                cv::Point(sLinkCoord[0], sLinkCoord[1]),
                minSide/40,
                cv::Scalar(middleColor[0], middleColor[1], middleColor[2]),
                3
     );
+
+    pend.iterate();
     return frame;
 }

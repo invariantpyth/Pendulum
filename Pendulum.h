@@ -21,8 +21,7 @@ private:
            time,
            mass,
            length;
-    double path[PATH_LENGTH][2];
-    int counter;
+
 public:
 
     Pendulum(double theta1, double theta2, double p1, double p2, double mass, double length, double time);
@@ -35,10 +34,9 @@ public:
     Pendulum corrector2();
     void iterate();
 
-    double getTheta1() const;
-    double getTheta2() const;
-    double getP1() const;
-    double getP2() const;
+
+    double path[PATH_LENGTH][3];
+    int counter;
 };
 
 
@@ -52,13 +50,13 @@ private:
     int middleColor[3];
     int linkColor[3];
     int pathColor[3];
-    Pendulum pend = Pendulum(0, 0, 0, 0, 1, 1, 0);
 
 public:
 
     Frame(int _width, int _height, const int *_backgroundColor, const int *_middleColor, const int *_linkColor, const int *_pathColor, Pendulum _pend);
-    void update();
     void transformCoordinates(double *coord);
     cv::Mat draw();
+
+    Pendulum pend = Pendulum(0, 0, 0, 0, 1, 1, 0);
 };
 #endif //PENDULUM_PENDULUM_H

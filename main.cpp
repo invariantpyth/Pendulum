@@ -1,8 +1,8 @@
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include "Pendulum.h"
-#include<chrono>
-#include<thread>
+//#include<chrono>
+//#include<thread>
 #define FPS 60
 #define WIDTH 1080
 #define HEIGHT 1920
@@ -14,8 +14,8 @@ int main() {
     {
         PI / 2,
         PI / 5,
-        1.0,
-        1.0,
+        0,
+        0,
         0.5,
         0.5,
         0.0
@@ -36,21 +36,24 @@ int main() {
      pend
     };
 
-    cv::VideoWriter video("pendulum_test.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
+    cv::VideoWriter video("pendulum_test.mp4", cv::VideoWriter::fourcc('m', 'p', '4', 'v'),
                           FPS, cv::Size(WIDTH, HEIGHT));
-    int frameAmount = FPS * 4 * 60;
-    cv::Mat videoFrame = cv::Mat::zeros(WIDTH, HEIGHT, CV_8UC3);;
-    for (auto i = 0; i < frameAmount; i++)
+    int frameAmount = FPS * 1 * 60;
+    cv::Mat videoFrame = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+    for (int i = 0; i < frameAmount; i++)
     {
-        frame.update();
         videoFrame = frame.draw();
         video << videoFrame;
+        if ((i * 100 / frameAmount) > ((i - 1) * 100 / frameAmount)){
+            std::cout << i * 100 / frameAmount << "% of the video is processed\n";
+        }
+//        cv::imwrite("test.png", videoFrame);
 //        cv::imshow("Pendulum", videoFrame);
 //        cv::moveWindow("Pendulum" , 0, 200 );
 //        std::this_thread::sleep_for(std::chrono::milliseconds(1000/60));
 
     }
+    std::cout << "100% of the video is processed\n";
     video.release();
-    std::cout << "Hello, World!" << std::endl;
     return 0;
 }
